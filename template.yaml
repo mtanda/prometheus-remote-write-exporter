@@ -1,0 +1,22 @@
+AWSTemplateFormatVersion: "2010-09-09"
+Transform: AWS::Serverless-2016-10-31
+Description: >
+  prometheus-remote-write-exporter
+
+Globals:
+  Function:
+    Timeout: 60
+
+Resources:
+  Function:
+    Type: AWS::Serverless::Function
+    Properties:
+      FunctionName: prometheus-remote-write-exporter
+      MemorySize: 128
+      Runtime: go1.x
+      Handler: prometheus-remote-write-exporter
+
+Outputs:
+  Function:
+    Description: "Function ARN"
+    Value: !GetAtt Function.Arn
