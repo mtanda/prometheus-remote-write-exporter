@@ -38,6 +38,14 @@ func send(ctx context.Context, metrics []Metric) error {
 		RemoteTimeout: 10 * time.Second,
 		PushInterval:  2 * time.Second,
 	}
+	username := os.Getenv("USERNAME")
+	password := os.Getenv("PASSWORD")
+	if username != "" && password != "" {
+		config.BasicAuth = map[string]string{
+			"username": username,
+			"password": password,
+		}
+	}
 
 	pusher, err := cortex.InstallNewPipeline(config, controller.WithCollectPeriod(2*time.Second), controller.WithResource(resource.NewWithAttributes(attribute.String("R", "V"))))
 	if err != nil {
