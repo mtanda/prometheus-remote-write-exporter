@@ -63,7 +63,8 @@ func send(ctx context.Context, metrics []Metric) error {
 		}
 		recorder.Record(ctx, m.Value, attributes...)
 	}
-	return nil
+
+	return pusher.Stop(ctx)
 }
 
 func Handler(lambdaReq LambdaRequest) (LambdaResponse, error) {
@@ -75,7 +76,6 @@ func Handler(lambdaReq LambdaRequest) (LambdaResponse, error) {
 			Body:       "error",
 		}, err
 	}
-	time.Sleep(10 * time.Second)
 	return LambdaResponse{
 		StatusCode: 200,
 		Body:       "ok",
