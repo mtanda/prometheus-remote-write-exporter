@@ -1,0 +1,11 @@
+{
+  "metrics": [
+    {
+      "name": "test_remote_write",
+      "value": 100,
+      "labels": {
+        "key1": "value1"
+      }
+    }
+  ]
+}
