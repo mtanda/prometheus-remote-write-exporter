@@ -15,7 +15,7 @@ import (
 
 type Metric struct {
 	Name   string
-	Value  int64
+	Value  float64
 	Labels map[string]string
 }
 
@@ -54,7 +54,7 @@ func send(ctx context.Context, metrics []Metric) error {
 
 	meter := pusher.MeterProvider().Meter("meter")
 	for _, m := range metrics {
-		recorder := metric.Must(meter).NewInt64ValueRecorder(
+		recorder := metric.Must(meter).NewFloat64ValueRecorder(
 			m.Name,
 		)
 		attributes := make([]attribute.KeyValue, 0)
