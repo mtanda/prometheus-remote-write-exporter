@@ -47,21 +47,32 @@ func send(ctx context.Context, metrics []Metric) error {
 		}
 	}
 
-	pusher, err := cortex.InstallNewPipeline(config, controller.WithCollectPeriod(2*time.Second), controller.WithResource(resource.NewWithAttributes(attribute.String("R", "V"))))
+	pusher, err := cortex.InstallNewPipeline(config, controller.WithCollectPeriod(2*time.Second), controller.WithResource(resource.NewWithAttributes(attribute.String("job", "prometheus-remote-write-exporter"))))
 	if err != nil {
 		return err
 	}
 
 	meter := pusher.MeterProvider().Meter("meter")
+	metricsMap := make(map[string][]Metric)
 	for _, m := range metrics {
-		recorder := metric.Must(meter).NewFloat64ValueRecorder(
-			m.Name,
-		)
-		attributes := make([]attribute.KeyValue, 0)
-		for k, v := range m.Labels {
-			attributes = append(attributes, attribute.String(k, v))
+		if _, ok := metricsMap[m.Name]; !ok {
+			metricsMap[m.Name] = make([]Metric, 0)
 		}
-		recorder.Record(ctx, m.Value, attributes...)
+		metricsMap[m.Name] = append(metricsMap[m.Name], m)
+	}
+	for name, m := range metricsMap {
+		observerCallback := func(m []Metric) func(context.Context, metric.Float64ObserverResult) {
+			return func(_ context.Context, result metric.Float64ObserverResult) {
+				for _, mm := range m {
+					attributes := make([]attribute.KeyValue, 0)
+					for k, v := range mm.Labels {
+						attributes = append(attributes, attribute.String(k, v))
+					}
+					result.Observe(mm.Value, attributes...)
+				}
+			}
+		}(m)
+		_ = metric.Must(meter).NewFloat64ValueObserver(name, observerCallback)
 	}
 
 	return pusher.Stop(ctx)
